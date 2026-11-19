@@ -1,0 +1,94 @@
+<main class="lookbook-shell">
+  <header class="lookbook-header">
+    <a class="wordmark" routerLink="/lookbook" aria-label="Maison Aura lookbook">
+      <span class="wordmark-mark">A</span>
+      <span>MAISON AURA<small>COLLECTIONS · MILAN</small></span>
+    </a>
+    <a class="team-link" routerLink="/auth/login">Team sign in <span aria-hidden="true">→</span></a>
+  </header>
+
+  <div *ngIf="loading" class="lookbook-state">Preparing the collection…</div>
+  <div *ngIf="error" class="lookbook-state error-state" role="alert">{{ error }}</div>
+
+  <ng-container *ngIf="!loading && !error">
+    <ng-container *ngIf="selectedCollection as collection; else noCollection">
+      <section class="collection-hero">
+        <div class="hero-copy">
+          <p class="eyebrow">{{ collection.saison.replace('_', ' ') }} · {{ collection.annee }}</p>
+          <h1>{{ collection.nom }}</h1>
+          <p class="hero-theme" *ngIf="collection.theme">{{ collection.theme }}</p>
+          <a class="discover-link" href="#collection">Discover the collection <span aria-hidden="true">↓</span></a>
+        </div>
+        <div class="hero-image">
+          <img *ngIf="pieces.length && pieceImage(pieces[0]) as image"
+            [src]="image" [alt]="pieces[0].nom">
+          <span *ngIf="!pieces.length" class="hero-monogram">A</span>
+        </div>
+        <p class="hero-caption">A study in enduring form</p>
+      </section>
+
+      <nav *ngIf="collections.length > 1" class="collection-nav" aria-label="Collections">
+        <button *ngFor="let item of collections" type="button"
+          [class.selected]="item.id === collection.id" (click)="selectCollection(item)">
+          {{ item.nom }} <span>{{ item.annee }}</span>
+        </button>
+      </nav>
+
+      <section id="collection" class="editorial-section">
+        <div class="section-intro">
+          <p class="eyebrow">THE LOOKBOOK</p>
+          <h2>Made to be kept.</h2>
+          <p>Discover the pieces in this season's collection.</p>
+        </div>
+
+        <p *ngIf="loadingPieces" class="lookbook-state">Loading pieces…</p>
+        <p *ngIf="!loadingPieces && !pieces.length" class="lookbook-state">
+          There are no pieces in this collection yet.
+        </p>
+
+        <div *ngIf="!loadingPieces && pieces.length" class="piece-grid">
+          <article *ngFor="let piece of pieces; let index = index" class="piece-card"
+            [class.piece-card-wide]="index % 3 === 0">
+            <div class="piece-image">
+              <img *ngIf="pieceImage(piece) as image" [src]="image" [alt]="piece.nom" loading="lazy">
+              <span *ngIf="!pieceImage(piece)" class="image-monogram">A</span>
+            </div>
+            <div class="piece-caption">
+              <div><p class="eyebrow">{{ piece.categorie.replace('_', ' ') }}</p><h3>{{ piece.nom }}</h3></div>
+              <span *ngIf="piece.editionLimitee">Edition of {{ piece.tirageMax }}</span>
+            </div>
+          </article>
+        </div>
+      </section>
+    </ng-container>
+    <ng-template #noCollection>
+      <section class="empty-lookbook">
+        <p class="eyebrow">MAISON AURA</p>
+        <h1>A new chapter is taking shape.</h1>
+        <p>The current collection will be presented here when it is available.</p>
+      </section>
+    </ng-template>
+
+    <section class="boutique-section">
+      <div class="section-intro">
+        <p class="eyebrow">FIND THE MAISON</p>
+        <h2>Visit us.</h2>
+        <p>Our teams welcome you in selected boutiques around the world.</p>
+      </div>
+      <div *ngIf="boutiques.length; else noBoutiques" class="boutique-grid">
+        <article *ngFor="let boutique of boutiques" class="boutique-card">
+          <p class="eyebrow">{{ boutique.type.replace('_', ' ') }}</p>
+          <h3>{{ boutique.nom }}</h3>
+          <p>{{ boutique.ville }}, {{ boutique.pays }}</p>
+          <p *ngIf="boutique.adresse">{{ boutique.adresse }}</p>
+        </article>
+      </div>
+      <ng-template #noBoutiques><p class="lookbook-state">Boutique information is not available yet.</p></ng-template>
+    </section>
+  </ng-container>
+
+  <footer class="lookbook-footer">
+    <a class="wordmark" routerLink="/lookbook"><span class="wordmark-mark">A</span><span>MAISON AURA</span></a>
+    <span>PRIVATE CLIENT SERVICES</span>
+  </footer>
+</main>

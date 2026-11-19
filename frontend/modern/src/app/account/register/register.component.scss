@@ -1,0 +1,24 @@
+@import "../login/login.component.scss";
+
+.name-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.auth-success {
+  margin-top: 24px;
+  padding: 18px;
+  border: 1px solid #bed8c7;
+  border-radius: 7px;
+  background: #f0f8f2;
+  color: #245c3e;
+}
+
+.auth-success p {
+  line-height: 1.6;
+}
+
+.auth-success button {
+  width: 100%;
+}

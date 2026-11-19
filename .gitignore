@@ -1,0 +1,33 @@
+# Operating system and editor files
+**/.DS_Store
+**/Thumbs.db
+**/.idea/
+**/*.iml
+**/.vscode/
+
+# Java and Maven output
+**/target/
+**/*.class
+**/*.log
+
+# Node, Angular, and test output
+**/node_modules/
+**/.angular/cache/
+**/dist/
+**/coverage/
+**/npm-debug.log*
+**/yarn-debug.log*
+
+# Local environment files and credentials
+**/.env
+**/.env.*
+!**/.env.example
+**/*.pem
+**/*.key
+**/*.p12
+**/*.jks
+
+# Local archives (the source folders are the project)
+*.zip
+
+

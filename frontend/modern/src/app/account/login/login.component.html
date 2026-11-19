@@ -1,0 +1,42 @@
+<main class="auth-shell">
+  <section class="auth-brand">
+    <div class="brand-mark">A</div>
+    <p class="eyebrow">MAISON AURA</p>
+    <h1>Considered style.<br>Thoughtful service.</h1>
+    <p class="brand-copy">Your private workspace for collections, clients and the details that make every visit memorable.</p>
+    <div class="brand-foot">AURA HUB <span>·</span> PRIVATE CLIENT SERVICES</div>
+  </section>
+
+  <section class="auth-panel">
+    <div class="auth-card">
+      <p class="eyebrow">WELCOME BACK</p>
+      <h2>Sign in to Aura Hub</h2>
+      <p class="auth-subtitle">Use your Maison Aura team account to continue.</p>
+
+      <div *ngIf="error" class="auth-error" role="alert">{{ error }}</div>
+
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" novalidate>
+        <label for="email">Work email</label>
+        <input id="email" type="email" formControlName="email" autocomplete="username"
+          [class.invalid]="submitted && fields['email'].invalid">
+        <small *ngIf="submitted && fields['email'].errors?.['required']">Email is required.</small>
+        <small *ngIf="submitted && fields['email'].errors?.['email']">Enter a valid email address.</small>
+
+        <label for="password">Password</label>
+        <input id="password" type="password" formControlName="password" autocomplete="current-password"
+          [class.invalid]="submitted && fields['password'].invalid">
+        <small *ngIf="submitted && fields['password'].errors?.['required']">Password is required.</small>
+
+        <button type="submit" [disabled]="loading">
+          {{ loading ? 'Signing in…' : 'Sign in' }}
+          <span aria-hidden="true">→</span>
+        </button>
+      </form>
+
+      <p class="auth-register">New to Aura Hub? <a routerLink="/auth/register">Request an account</a></p>
+      <p class="auth-register"><a routerLink="/lookbook">Explore the public lookbook</a></p>
+      <p class="auth-note">Accounts created here require administrator approval before first sign-in.</p>
+    </div>
+    <footer>© {{ year }} Maison Aura</footer>
+  </section>
+</main>

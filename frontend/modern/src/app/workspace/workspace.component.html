@@ -1,0 +1,314 @@
+<div class="workspace">
+  <aside class="sidebar">
+    <a class="brand" href="/" aria-label="Aura Hub home" (click)="$event.preventDefault(); loadSection('dashboard')">
+      <span class="brand-symbol">A</span>
+      <span><strong>MAISON AURA</strong><small>PRIVATE CLIENT SERVICES</small></span>
+    </a>
+
+    <p class="nav-caption">WORKSPACE</p>
+    <nav aria-label="Main navigation">
+      <button *ngFor="let item of sections" type="button" class="nav-item"
+        [class.active]="activeSection === item.key" (click)="loadSection(item.key)">
+        <span class="nav-icon">{{ item.icon }}</span>{{ item.label }}
+        <span *ngIf="item.key === 'stocks' && lowStockCount" class="nav-count">{{ lowStockCount }}</span>
+      </button>
+      <button *ngIf="isAdmin" type="button" class="nav-item"
+        [class.active]="activeSection === 'users'" (click)="navigateToTeamAccess()">
+        <span class="nav-icon">♧</span>Team access
+      </button>
+    </nav>
+
+    <div class="sidebar-bottom">
+      <div class="profile-avatar">{{ userName.charAt(0) }}</div>
+      <div class="profile-copy"><strong>{{ userName }}</strong><small>{{ userRole }}</small></div>
+      <button class="logout-button" type="button" title="Sign out" aria-label="Sign out" (click)="logout()">↗</button>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <header class="topbar">
+      <div class="breadcrumb">AURA HUB <span>/</span> {{ pageTitle | uppercase }}</div>
+      <div class="topbar-right">
+        <span class="online-indicator"></span>
+        <span>Workspace</span>
+        <span class="topbar-divider"></span>
+        <span>{{ userName }}</span>
+        <button type="button" class="signout-link" (click)="logout()">Sign out</button>
+      </div>
+    </header>
+
+    <section class="page-content">
+      <div class="page-heading">
+        <div>
+          <p class="eyebrow">MAISON AURA · {{ userRole | uppercase }}</p>
+          <h1>{{ pageTitle }}</h1>
+          <p class="page-description">{{ pageDescription }}</p>
+        </div>
+        <div class="heading-actions">
+          <button *ngIf="activeSection !== 'dashboard' && (isAdmin || activeSection === 'clients' || activeSection === 'orders')"
+            class="primary-button" type="button" (click)="openCreate()">
+            <span>＋</span> {{ activeSection === 'orders' ? 'New order' : activeSection === 'users' ? 'Add team member' : 'Add ' + (activeSection === 'pieces' ? 'piece' : activeSection.slice(0, -1)) }}
+          </button>
+          <button class="icon-button" type="button" aria-label="Refresh" (click)="loadSection(activeSection)">↻</button>
+        </div>
+      </div>
+
+      <div *ngIf="notice" class="notice" role="status"><span>✓</span>{{ notice }}</div>
+      <div *ngIf="error" class="error-banner" role="alert">
+        <span>{{ error }}</span><button type="button" (click)="loadSection(activeSection)">Try again</button>
+      </div>
+
+      <div *ngIf="loading" class="loading-state"><span class="spinner"></span>Loading your workspace…</div>
+
+      <ng-container *ngIf="!loading">
+        <section *ngIf="activeSection === 'dashboard'" class="dashboard-view">
+          <div class="welcome-card">
+            <div>
+              <p class="eyebrow">YOUR MAISON, AT A GLANCE</p>
+              <h2>Good day, {{ userName.split(' ')[0] }}.</h2>
+              <p>Every thoughtful detail starts with a clear picture.</p>
+            </div>
+            <div class="welcome-seal">A</div>
+          </div>
+
+          <div class="stat-grid">
+            <article class="stat-card"><span class="stat-icon olive">◇</span><div><small>Collections</small><strong>{{ collections.length }}</strong></div><span class="stat-note">Across all seasons</span></article>
+            <article class="stat-card"><span class="stat-icon sand">◈</span><div><small>Pieces</small><strong>{{ pieces.length }}</strong></div><span class="stat-note">In the catalogue</span></article>
+            <article class="stat-card"><span class="stat-icon rose">♙</span><div><small>Private clients</small><strong>{{ clients.length }}</strong></div><span class="stat-note">In your portfolio</span></article>
+            <article class="stat-card"><span class="stat-icon blue">▧</span><div><small>Orders</small><strong>{{ orders.length }}</strong></div><span class="stat-note">{{ draftOrderCount }} drafts awaiting attention</span></article>
+          </div>
+
+          <div class="dashboard-grid">
+            <section class="panel">
+              <div class="panel-heading"><div><p class="eyebrow">FOLLOW THROUGH</p><h2>Recent orders</h2></div><button class="text-button" type="button" (click)="loadSection('orders')">All orders →</button></div>
+              <div *ngIf="orders.length; else noOrders" class="compact-list">
+                <article *ngFor="let order of recentOrders" class="compact-row">
+                  <span class="order-initial">{{ order.clientNom.charAt(0) }}</span>
+                  <div class="compact-main"><strong>{{ order.clientNom }}</strong><small>{{ order.boutiqueNom }} · {{ order.date | date:'mediumDate' }}</small></div>
+                  <span class="status-pill" [ngClass]="'status-' + order.statut.toLowerCase()">{{ order.statut.replace('_', ' ') }}</span>
+                  <strong class="row-total">{{ order.total | currency:'EUR':'symbol':'1.0-0' }}</strong>
+                </article>
+              </div>
+              <ng-template #noOrders><p class="empty-inline">No orders yet. Create one when you are ready.</p></ng-template>
+            </section>
+
+            <section class="panel">
+              <div class="panel-heading"><div><p class="eyebrow">STOCK WATCH</p><h2>Needs attention</h2></div><button class="text-button" type="button" (click)="loadSection('stocks')">View stock →</button></div>
+              <div *ngIf="lowStockCount; else stockClear" class="compact-list">
+                <article *ngFor="let stock of lowStockItems" class="compact-row">
+                  <span class="stock-alert">!</span>
+                  <div class="compact-main"><strong>{{ stock.pieceNom }}</strong><small>{{ stock.boutiqueNom }} · {{ stock.taille }}</small></div>
+                  <span class="quantity-low">{{ stock.quantite }} left</span>
+                </article>
+              </div>
+              <ng-template #stockClear><p class="empty-inline">All stock levels are looking healthy.</p></ng-template>
+            </section>
+          </div>
+
+          <div *ngIf="isAdmin && stats" class="dashboard-grid stats-grid">
+            <section class="panel">
+              <div class="panel-heading"><div><p class="eyebrow">REVENUE</p><h2>By boutique</h2></div></div>
+              <div *ngFor="let item of stats.caParBoutique" class="metric-row"><span>{{ item.libelle }}</span><strong>{{ item.montant | currency:'EUR':'symbol':'1.0-0' }}</strong></div>
+              <p *ngIf="!stats.caParBoutique.length" class="empty-inline">Revenue will appear as orders are completed.</p>
+            </section>
+            <section class="panel">
+              <div class="panel-heading"><div><p class="eyebrow">COLLECTION PERFORMANCE</p><h2>Best sellers</h2></div></div>
+              <div *ngFor="let item of stats.piecesPlusVendues" class="metric-row"><span>{{ item.nom }}</span><strong>{{ item.quantiteVendue }} sold</strong></div>
+              <p *ngIf="!stats.piecesPlusVendues.length" class="empty-inline">Sales performance will appear here.</p>
+            </section>
+            <section class="panel">
+              <div class="panel-heading"><div><p class="eyebrow">REVENUE</p><h2>By category</h2></div></div>
+              <div *ngFor="let item of stats.caParCategorie" class="metric-row"><span>{{ item.libelle }}</span><strong>{{ item.montant | currency:'EUR':'symbol':'1.0-0' }}</strong></div>
+              <p *ngIf="!stats.caParCategorie.length" class="empty-inline">Category revenue will appear as orders are completed.</p>
+            </section>
+            <section class="panel">
+              <div class="panel-heading"><div><p class="eyebrow">COLLECTION PERFORMANCE</p><h2>Sell-through</h2></div></div>
+              <div *ngFor="let item of stats.ecoulementCollections" class="metric-row">
+                <span>{{ item.nom }}<small class="cell-subtitle">{{ item.vendus }} sold · {{ item.stockRestant }} remaining</small></span>
+                <strong>{{ item.taux | number:'1.0-1' }}%</strong>
+              </div>
+              <p *ngIf="!stats.ecoulementCollections.length" class="empty-inline">Collection performance will appear here.</p>
+            </section>
+          </div>
+        </section>
+
+        <section *ngIf="activeSection !== 'dashboard'" class="panel data-panel">
+          <div class="table-toolbar">
+            <div class="result-count"><strong>{{ rowCount() }}</strong> records</div>
+            <label class="search-box"><span>⌕</span><input type="search" [(ngModel)]="searchText" placeholder="Search this list…" aria-label="Search this list"></label>
+          </div>
+
+          <div class="table-scroll">
+            <table *ngIf="activeSection === 'collections'">
+              <thead><tr><th>Collection</th><th>Season</th><th>Year</th><th>Status</th><th>Runway</th><th *ngIf="isAdmin">Actions</th></tr></thead>
+              <tbody><tr *ngFor="let row of visibleCollections; trackBy: trackById">
+                <td><strong>{{ row.nom }}</strong><small class="cell-subtitle">{{ row.theme || '—' }}</small></td>
+                <td>{{ row.saison.replace('_', ' ') }}</td><td>{{ row.annee }}</td>
+                <td><span class="status-pill status-neutral">{{ row.statut.replace('_', ' ') }}</span></td>
+                <td>{{ row.dateDefile ? (row.dateDefile | date:'mediumDate') : '—' }}</td>
+                <td *ngIf="isAdmin" class="actions"><button type="button" (click)="openEdit(row)">Edit</button><button type="button" class="danger-action" (click)="deleteCollection(row)">Delete</button></td>
+              </tr></tbody>
+            </table>
+
+            <table *ngIf="activeSection === 'pieces'">
+              <thead><tr><th>Piece</th><th>Collection</th><th>Category</th><th>Price</th><th>Edition</th><th *ngIf="isAdmin">Actions</th></tr></thead>
+              <tbody><tr *ngFor="let row of visiblePieces; trackBy: trackById">
+                <td><strong>{{ row.nom }}</strong><small class="cell-subtitle">{{ row.reference }} · {{ row.couleur || '—' }}</small></td>
+                <td>{{ collectionName(row.collectionId) }}</td><td>{{ row.categorie }}</td><td>{{ row.prix | currency:'EUR':'symbol':'1.0-0' }}</td>
+                <td>{{ row.editionLimitee ? 'Limited · ' + row.tirageMax : 'Ready-to-wear' }}</td>
+                <td *ngIf="isAdmin" class="actions"><button type="button" (click)="openEdit(row)">Edit</button><button type="button" class="danger-action" (click)="deletePiece(row)">Delete</button></td>
+              </tr></tbody>
+            </table>
+
+            <table *ngIf="activeSection === 'boutiques'">
+              <thead><tr><th>Boutique</th><th>City</th><th>Country</th><th>Type</th><th>Address</th><th *ngIf="isAdmin">Actions</th></tr></thead>
+              <tbody><tr *ngFor="let row of visibleBoutiques; trackBy: trackById">
+                <td><strong>{{ row.nom }}</strong></td><td>{{ row.ville }}</td><td>{{ row.pays }}</td><td>{{ row.type.replace('_', ' ') }}</td><td>{{ row.adresse || '—' }}</td>
+                <td *ngIf="isAdmin" class="actions"><button type="button" (click)="openEdit(row)">Edit</button><button type="button" class="danger-action" (click)="deleteBoutique(row)">Delete</button></td>
+              </tr></tbody>
+            </table>
+
+            <table *ngIf="activeSection === 'stocks'">
+              <thead><tr><th>Piece</th><th>Boutique</th><th>Size</th><th>Available</th><th *ngIf="isAdmin">Actions</th></tr></thead>
+              <tbody><tr *ngFor="let row of visibleStocks; trackBy: trackById">
+                <td><strong>{{ row.pieceNom }}</strong></td><td>{{ row.boutiqueNom }}</td><td>{{ row.taille }}</td>
+                <td><span [class.quantity-low]="row.quantite <= 3">{{ row.quantite }} units</span></td>
+                <td *ngIf="isAdmin" class="actions"><button type="button" (click)="openEdit(row)">Adjust</button><button type="button" class="danger-action" (click)="deleteStock(row)">Delete</button></td>
+              </tr></tbody>
+            </table>
+
+            <table *ngIf="activeSection === 'clients'">
+              <thead><tr><th>Private client</th><th>Contact</th><th>Country</th><th>Client level</th><th>Sizes & preferences</th><th>Actions</th></tr></thead>
+              <tbody><tr *ngFor="let row of visibleClients; trackBy: trackById">
+                <td><strong>{{ row.nom }}</strong><small class="cell-subtitle">{{ row.conseillerNom || 'Your portfolio' }}</small></td>
+                <td>{{ row.email || row.tel || '—' }}</td><td>{{ row.pays || '—' }}</td><td><span class="status-pill status-neutral">{{ row.niveau }}</span></td>
+                <td class="preference-cell">{{ row.tailles || row.preferences || '—' }}</td>
+                <td class="actions"><button type="button" (click)="openClientHistory(row)">View profile</button><button type="button" (click)="openEdit(row)">Edit</button><button type="button" class="danger-action" (click)="deleteClient(row)">Delete</button></td>
+              </tr></tbody>
+            </table>
+
+            <table *ngIf="activeSection === 'orders'">
+              <thead><tr><th>Order</th><th>Private client</th><th>Boutique</th><th>Pieces</th><th>Date</th><th>Total</th><th>Status</th><th>Actions</th></tr></thead>
+              <tbody><tr *ngFor="let row of visibleOrders; trackBy: trackById">
+                <td><strong>#{{ row.id }}</strong></td><td>{{ row.clientNom }}</td><td>{{ row.boutiqueNom }}</td>
+                <td><span *ngFor="let line of row.lignes; let last = last">{{ line.pieceNom }}<span *ngIf="line.numeroExemplaire"> · #{{ line.numeroExemplaire }}/{{ line.tirageMax }}</span><span *ngIf="!last">, </span></span></td>
+                <td>{{ row.date | date:'mediumDate' }}</td><td>{{ row.total | currency:'EUR':'symbol':'1.0-0' }}</td>
+                <td><span class="status-pill" [ngClass]="'status-' + row.statut.toLowerCase()">{{ row.statut.replace('_', ' ') }}</span></td>
+                <td class="actions order-actions">
+                  <button *ngIf="row.statut === 'BROUILLON'" type="button" (click)="updateOrder(row, 'confirmer')">Confirm</button>
+                  <button *ngIf="row.statut === 'CONFIRMEE'" type="button" (click)="updateOrder(row, 'livrer')">Mark delivered</button>
+                  <button *ngIf="row.statut === 'BROUILLON' || row.statut === 'CONFIRMEE'" type="button" class="danger-action" (click)="updateOrder(row, 'annuler')">Cancel</button>
+                  <button *ngIf="row.statut === 'BROUILLON'" type="button" class="danger-action" (click)="deleteOrder(row)">Delete</button>
+                </td>
+              </tr></tbody>
+            </table>
+
+            <table *ngIf="activeSection === 'users'">
+              <thead><tr><th>Team member</th><th>Email</th><th>Phone</th><th>Role</th><th>Access</th><th>Actions</th></tr></thead>
+              <tbody><tr *ngFor="let row of visibleUsers; trackBy: trackById">
+                <td><strong>{{ row.prenom }} {{ row.nom }}</strong></td><td>{{ row.email }}</td><td>{{ row.tel || '—' }}</td>
+                <td>{{ row.roles.join(', ') }}</td><td><span class="status-pill" [ngClass]="row.enabled ? 'status-enabled' : 'status-disabled'">{{ row.enabled ? 'Active' : 'Awaiting approval' }}</span></td>
+                <td class="actions"><button *ngIf="!row.enabled" type="button" (click)="activateUser(row)">Activate</button><button type="button" (click)="openEdit(row)">Edit</button><button type="button" class="danger-action" (click)="deleteUser(row)">Delete</button></td>
+              </tr></tbody>
+            </table>
+
+            <div *ngIf="rowCount() === 0" class="empty-table">
+              <span>◇</span><h3>No matching records</h3><p>Try another search or add your first record.</p>
+            </div>
+          </div>
+          <div class="table-footer">Showing {{ rowCount() }} {{ rowCount() === 1 ? 'record' : 'records' }}</div>
+        </section>
+      </ng-container>
+    </section>
+  </main>
+</div>
+
+<div *ngIf="editorOpen" class="modal-backdrop" (click)="closeEditor()">
+  <section class="editor-modal" role="dialog" aria-modal="true" [attr.aria-label]="(editingId ? 'Edit ' : 'Add ') + pageTitle.slice(0, -1)" (click)="$event.stopPropagation()">
+    <header class="modal-heading">
+      <div><p class="eyebrow">{{ editingId ? 'UPDATE RECORD' : 'NEW RECORD' }}</p><h2>{{ editingId ? 'Edit' : 'Add' }} {{ activeSection === 'users' ? 'team member' : activeSection === 'orders' ? 'order' : activeSection.slice(0, -1) }}</h2></div>
+      <button type="button" class="modal-close" aria-label="Close dialog" (click)="closeEditor()">×</button>
+    </header>
+    <form #editorForm="ngForm" (ngSubmit)="saveEditor()">
+      <div class="form-grid">
+        <label *ngIf="activeSection === 'orders'" class="full-field">
+          <span>Search for a piece</span>
+          <input type="search" name="orderPieceSearch" [(ngModel)]="orderPieceSearch"
+            (ngModelChange)="filterOrderPieces($event)" placeholder="Search by name or reference">
+        </label>
+        <label *ngFor="let field of formFields" [class.full-field]="field.type === 'checkbox' || field.key === 'preferences'" [class.checkbox-field]="field.type === 'checkbox'">
+          <span *ngIf="field.type !== 'checkbox'">{{ field.label }}<b *ngIf="field.required"> *</b></span>
+          <ng-container [ngSwitch]="field.type">
+            <select *ngSwitchCase="'select'" [name]="field.key" [(ngModel)]="formValue[field.key]"
+              (ngModelChange)="onEditorFieldChange(field.key)" [required]="!!field.required">
+              <option *ngFor="let option of field.options" [ngValue]="option.value">{{ option.label }}</option>
+            </select>
+            <input *ngSwitchCase="'checkbox'" type="checkbox" [name]="field.key" [(ngModel)]="formValue[field.key]">
+            <input *ngSwitchDefault [type]="field.type" [name]="field.key" [(ngModel)]="formValue[field.key]"
+              [required]="!!field.required" [min]="field.min" [step]="field.key === 'prix' ? 'any' : null"
+              [autocomplete]="field.type === 'email' ? 'email' : 'off'">
+          </ng-container>
+          <span *ngIf="field.type === 'checkbox'" class="checkbox-label">{{ field.label }}</span>
+        </label>
+      </div>
+      <p *ngIf="activeSection === 'orders'" class="form-hint">This creates a draft order. Stock is reserved only after confirmation.</p>
+      <p *ngIf="activeSection === 'orders' && availabilityLoading" class="form-hint">Checking live stock availability…</p>
+      <p *ngIf="activeSection === 'orders' && selectedOrderAvailability as available" class="form-hint">
+        {{ available.quantite }} available in {{ available.boutique }}, {{ available.ville }} · size {{ available.taille }}.
+        <span *ngIf="selectedOrderPiece?.editionLimitee">This limited-edition piece is numbered after confirmation.</span>
+      </p>
+      <p *ngIf="activeSection === 'orders' && !availabilityLoading && availableStock.length && !selectedOrderAvailability" class="form-hint">
+        Choose a size with stock available in the selected boutique.
+      </p>
+      <p *ngIf="activeSection === 'users' && !editingId" class="form-hint">New team accounts are created inactive. Activate them after verification.</p>
+      <div *ngIf="activeSection === 'pieces' && editingId && editingPieceImages.length" class="form-hint">
+        <span *ngFor="let image of editingPieceImages">
+          <img [src]="pieceImageUrl(image)" alt="Piece photograph" loading="lazy"
+            style="width: 76px; height: 76px; margin: 0 8px 8px 0; object-fit: cover">
+        </span>
+      </div>
+      <div *ngIf="activeSection === 'pieces' && editingId" class="form-field full-field image-upload-field">
+        <label for="piece-images">Additional piece photographs</label>
+        <input id="piece-images" type="file" accept="image/*" multiple (change)="onImageFilesSelected($event)">
+        <small>Choose multiple images, then upload them to this piece.</small>
+        <button type="button" class="secondary-button" [disabled]="!selectedImageFiles.length || saving" (click)="uploadPieceImages()">
+          Upload {{ selectedImageFiles.length || '' }} image{{ selectedImageFiles.length === 1 ? '' : 's' }}
+        </button>
+      </div>
+      <p *ngIf="error" class="form-error" role="alert">{{ error }}</p>
+      <footer class="modal-actions"><button type="button" class="secondary-button" [disabled]="saving" (click)="closeEditor()">Cancel</button><button type="submit" class="primary-button" [disabled]="editorForm.invalid || saving">{{ saving ? 'Saving…' : 'Save changes' }}</button></footer>
+    </form>
+  </section>
+</div>
+
+<div *ngIf="clientHistoryLoading || clientHistory || clientHistoryError" class="modal-backdrop" (click)="closeClientHistory()">
+  <section class="editor-modal client-history-modal" role="dialog" aria-modal="true" aria-label="Private client profile"
+    (click)="$event.stopPropagation()">
+    <header class="modal-heading">
+      <div><p class="eyebrow">PRIVATE CLIENT</p><h2>{{ clientHistory?.client?.nom || 'Client profile' }}</h2></div>
+      <button type="button" class="modal-close" aria-label="Close dialog" (click)="closeClientHistory()">×</button>
+    </header>
+    <p *ngIf="clientHistoryLoading" class="form-hint">Loading client profile…</p>
+    <p *ngIf="clientHistoryError" class="form-error" role="alert">{{ clientHistoryError }}</p>
+    <ng-container *ngIf="clientHistory as history">
+      <div class="client-profile-grid">
+        <p><small>Email</small><strong>{{ history.client.email || '—' }}</strong></p>
+        <p><small>Phone</small><strong>{{ history.client.tel || '—' }}</strong></p>
+        <p><small>Country</small><strong>{{ history.client.pays || '—' }}</strong></p>
+        <p><small>Client level</small><strong>{{ history.client.niveau }}</strong></p>
+        <p><small>Advisor</small><strong>{{ history.client.conseillerNom }}</strong></p>
+        <p><small>Sizes</small><strong>{{ history.client.tailles || '—' }}</strong></p>
+        <p class="profile-wide"><small>Preferences</small><strong>{{ history.client.preferences || '—' }}</strong></p>
+      </div>
+      <div class="history-heading"><h3>Purchase history</h3><strong>{{ history.totalAchats | currency:'EUR':'symbol':'1.0-0' }} confirmed</strong></div>
+      <div *ngIf="history.commandes.length; else noClientOrders" class="client-order-history">
+        <article *ngFor="let order of history.commandes">
+          <div><strong>Order #{{ order.id }}</strong><small>{{ order.date | date:'mediumDate' }} · {{ order.boutiqueNom }}</small></div>
+          <span>{{ order.statut.replace('_', ' ') }}</span>
+          <strong>{{ order.total | currency:'EUR':'symbol':'1.0-0' }}</strong>
+        </article>
+      </div>
+      <ng-template #noClientOrders><p class="empty-inline">No orders recorded for this client.</p></ng-template>
+    </ng-container>
+  </section>
+</div>
