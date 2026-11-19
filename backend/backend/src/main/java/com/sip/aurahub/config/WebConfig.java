@@ -21,7 +21,8 @@ public class WebConfig implements WebMvcConfigurer {
         // Visuels uploadés : /uploads/xxx.jpg
         String location = storage.getRoot().toUri().toString();
         if (!location.endsWith("/")) location += "/";
-        registry.addResourceHandler("/uploads/**").addResourceLocations(location);
+        registry.addResourceHandler("/uploads/**")
+                .addResourceLocations(location, "classpath:/uploads/");
 
         // Build Angular copié dans src/main/resources/static + repli sur index.html
         // (sinon un rafraîchissement sur /clients/3 donnerait une 404)
