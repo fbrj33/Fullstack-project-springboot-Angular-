@@ -104,8 +104,9 @@ The backend is configured through environment variables:
 
 | Variable | Purpose |
 |---|---|
-| `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` | Database connection; PostgreSQL in production |
-| `DB_URL` | Optional full JDBC URL (e.g. `jdbc:postgresql://...`) |
+| `DATABASE_URL` | Render PostgreSQL connection URL in production |
+| `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` | Alternative PostgreSQL connection settings |
+| `DB_URL` | Optional PostgreSQL JDBC URL when using the `DB_*` settings |
 | `PORT` | HTTP port supplied by Render (default `8080` locally) |
 | `JWT_SECRET` | Key used to sign JWTs |
 | `ADMIN_EMAIL`, `ADMIN_PASSWORD` | Initial admin account |
@@ -165,11 +166,7 @@ Set these on the web service (use Render's secret fields for passwords):
 | Key | Value |
 |---|---|
 | `SPRING_PROFILES_ACTIVE` | `production` |
-| `DB_HOST` | Internal hostname from the PostgreSQL Connect page |
-| `DB_PORT` | Internal port, usually `5432` |
-| `DB_NAME` | Database name from the Connect page |
-| `DB_USER` | Database username from the Connect page |
-| `DB_PASSWORD` | Database password from the Connect page |
+| `DATABASE_URL` | The database's internal URL from the PostgreSQL Connect page (keep it secret) |
 | `JWT_SECRET` | Output of `openssl rand -hex 32` (64 random characters); keep it secret and stable |
 | `ADMIN_EMAIL` | Your administrator email |
 | `ADMIN_PASSWORD` | A unique, strong password; do not use the example/local default |
@@ -177,7 +174,7 @@ Set these on the web service (use Render's secret fields for passwords):
 | `CORS_ORIGINS` | The same web service URL, with no trailing slash |
 | `UPLOAD_DIR` | `/var/data/uploads` |
 
-Render supplies `PORT` automatically. Do not set it manually. `DB_URL` is optional; if used, it must be a JDBC URL such as `jdbc:postgresql://HOST:5432/DB?sslmode=require`, not the `postgres://` URL shown by Render.
+Render supplies `PORT` automatically. Do not set it manually. The app accepts Render's `postgres://` or `postgresql://` `DATABASE_URL` and converts it to a JDBC connection. If you prefer separate database fields, omit `DATABASE_URL` and set `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, and `DB_PASSWORD` instead.
 
 ### 4. Persist uploaded images
 
